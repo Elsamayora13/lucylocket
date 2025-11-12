@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucylocket/menu.dart';
+import 'package:lucylocket/screens/menu.dart';
 
 void main() {
   runApp(const MyApp());
