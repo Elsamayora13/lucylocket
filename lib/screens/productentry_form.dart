@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucylocket/widgets/left_drawer.dart';
+import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:lucylocket/screens/menu.dart';
 
 class ProductEntryFormPage extends StatefulWidget {
   const ProductEntryFormPage({super.key});
@@ -12,9 +16,11 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
   final _formKey = GlobalKey<FormState>();
   String _name = "";
   int _price = 0;
+  int _stock = 0;
   String _description = "";
   String _category = "Accessories"; // default
   String _thumbnail = "";
+  String _color = "";
   bool _isFeatured = false; // default
 
   final List<String> _categories = [
@@ -28,6 +34,7 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
     return Scaffold(
       appBar: AppBar(
         title: const Center(
@@ -100,6 +107,38 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
                     }
                     if (int.parse(value) <= 0) {
                       return "Harga harus lebih dari 0!";
+                    }
+                    return null;
+                  },
+                ),
+              ),
+
+              // === Stock ===
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    hintText: "Stok Produk",
+                    labelText: "Stok Produk",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (String? value) {
+                    setState(() {
+                      _stock = int.tryParse(value!) ?? 0;
+                    });
+                  },
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return "Stok tidak boleh kosong!";
+                    }
+                    if (int.tryParse(value) == null) {
+                      return "Stok harus berupa angka!";
+                    }
+                    if (int.parse(value) < 0) {
+                      return "Stok tidak boleh negatif!";
                     }
                     return null;
                   },
@@ -191,6 +230,34 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
                 ),
               ),
 
+              // === Color ===
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    hintText: "Warna (opsional, contoh: #FF5733)",
+                    labelText: "Warna",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _color = value!;
+                    });
+                  },
+                  validator: (String? value) {
+                    if (value != null && value.isNotEmpty) {
+                      // Validasi format hex color sederhana
+                      if (!RegExp(r'^#?([0-9A-Fa-f]{6})$').hasMatch(value)) {
+                        return "Format warna harus hex (contoh: #FF5733)";
+                      }
+                    }
+                    return null;
+                  },
+                ),
+              ),
+
               // === Is Featured ===
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -216,46 +283,51 @@ class _ProductEntryFormPageState extends State<ProductEntryFormPage> {
                         Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Produk berhasil disimpan!'),
-                              content: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Nama: $_name'),
-                                    Text('Harga: Rp $_price'),
-                                    Text('Deskripsi: $_description'),
-                                    Text('Kategori: $_category'),
-                                    Text('Thumbnail: ${_thumbnail.isEmpty ? "-" : _thumbnail}'),
-                                    Text('Unggulan: ${_isFeatured ? "Ya" : "Tidak"}'),
-                                  ],
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  child: const Text('OK'),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    _formKey.currentState!.reset();
-                                    setState(() {
-                                      _name = "";
-                                      _price = 0;
-                                      _description = "";
-                                      _category = "Accessories";
-                                      _thumbnail = "";
-                                      _isFeatured = false;
-                                    });
-                                  },
-                                ),
-                              ],
-                            );
-                          },
+                        // TODO: Replace the URL with your app's URL
+                        // To connect Android emulator with Django on localhost, use URL http://10.0.2.2:8000
+                        // If you using chrome, use URL http://localhost:8000
+                        
+                        final response = await request.postJson(
+                          "http://localhost:8000/create-flutter/",
+                          jsonEncode({
+                            "name": _name,
+                            "description": _description,
+                            "price": _price,
+                            "stock": _stock,
+                            "category": _category,
+                            "thumbnail": _thumbnail,
+                            "color": _color,
+                            "is_featured": _isFeatured,
+                          }),
                         );
+                        
+                        if (context.mounted) {
+                          if (response['status'] == 'success') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Produk berhasil disimpan!"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MyHomePage(),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  response['message'] ?? "Terjadi kesalahan, silakan coba lagi.",
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
                       }
                     },
                     child: const Text(

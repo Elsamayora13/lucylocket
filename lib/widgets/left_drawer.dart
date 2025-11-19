@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucylocket/screens/menu.dart';
 import 'package:lucylocket/screens/productentry_form.dart';
+import 'package:lucylocket/screens/product_entry_list.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -38,11 +39,11 @@ class LeftDrawer extends StatelessWidget {
               ],
             ),
           ),
-          // Bagian routing
+
+          // ==================== HALAMAN UTAMA ====================
           ListTile(
             leading: const Icon(Icons.home_outlined),
             title: const Text('Halaman Utama'),
-            // Bagian redirection ke MyHomePage
             onTap: () {
               Navigator.pushReplacement(
                 context,
@@ -52,15 +53,31 @@ class LeftDrawer extends StatelessWidget {
               );
             },
           ),
+
+          // ==================== TAMBAH PRODUK ====================
           ListTile(
             leading: const Icon(Icons.add),
             title: const Text('Tambah Produk'),
-            // Bagian redirection ke ProductEntryFormPage
             onTap: () {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ProductEntryFormPage(),
+                ),
+              );
+            },
+          ),
+
+          // ==================== PRODUCT LIST ====================
+          ListTile(
+            leading: const Icon(Icons.add_reaction_rounded),
+            title: const Text('Product List'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const ProductEntryListPage(isMyProduct: false),
                 ),
               );
             },
