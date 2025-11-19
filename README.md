@@ -122,4 +122,23 @@ if (item.name == "All Products") {
 } else if (item.name == "Create Product") {
   backgroundColor = Colors.red;
 }
+
+Tugas 9
+1. Jelaskan mengapa kita perlu membuat model Dart saat mengambil/mengirim data JSON? Apa konsekuensinya jika langsung memetakan Map<String, dynamic> tanpa model (terkait validasi tipe, null-safety, maintainability)?
+Pembuatan model Dart diperlukan untuk memberikan type safety dan null safety yang lebih baik. Dengan model, data yang diterima dari JSON akan divalidasi tipe datanya, menghindari runtime error yang mungkin terjadi jika langsung menggunakan Map<String, dynamic>. Model juga meningkatkan maintainability kode karena struktur data terdefinisi dengan jelas, memudahkan refactoring dan pengembangan fitur baru. Tanpa model, rentan terhadap error seperti typo pada key map atau tipe data yang tidak sesuai.
+
+2.Apa fungsi package http dan CookieRequest dalam tugas ini? Jelaskan perbedaan peran http vs CookieRequest.
+Package http bertugas untuk melakukan HTTP requests biasa ke server Django, sedangkan CookieRequest mengelola cookies untuk autentikasi. Perbedaan utamanya adalah http hanya menangani request-response biasa, sementara CookieRequest secara otomatis menangani session cookies untuk menjaga state login pengguna across requests. CookieRequest memastikan setiap request ke Django membawa cookie authentication yang diperlukan.
+
+3. Jelaskan mengapa instance CookieRequest perlu untuk dibagikan ke semua komponen di aplikasi Flutter.
+Instance CookieRequest perlu dibagikan ke semua komponen karena menggunakan provider pattern untuk state management yang konsisten. Dengan membagikan instance yang sama, seluruh aplikasi dapat mengakses status autentikasi yang terpusat, memudahkan sinkronisasi state login across seluruh widget dan memastikan UI konsisten menampilkan status login.
+
+4.Jelaskan konfigurasi konektivitas yang diperlukan agar Flutter dapat berkomunikasi dengan Django. Mengapa kita perlu menambahkan 10.0.2.2 pada ALLOWED_HOSTS, mengaktifkan CORS dan pengaturan SameSite/cookie, dan menambahkan izin akses internet di Android? Apa yang akan terjadi jika konfigurasi tersebut tidak dilakukan dengan benar? Konfigurasi konektivitas diperlukan karena Flutter berjalan di environment yang berbeda. 10.0.2.2 ditambahkan ke ALLOWED_HOSTS karena emulator Android menggunakan IP ini untuk mengakses localhost development server. CORS diaktifkan untuk mengizinkan cross-origin requests dari aplikasi Flutter. SameSite/cookie diatur agar cookies dapat dikirim cross-site. Izin internet di Android diperlukan karena aplikasi melakukan network requests. Tanpa konfigurasi ini, komunikasi antara Flutter dan Django akan gagal total.
+
+5.Jelaskan mekanisme pengiriman data mulai dari input hingga dapat ditampilkan pada Flutter. Mekanisme pengiriman data dimulai dari input user di Flutter, data dikonversi ke JSON, dikirim via HTTP POST/PUT request ke endpoint Django. Django memproses data, menyimpan ke database, dan mengembalikan response. Flutter menerima response JSON, mem-parsing ke model Dart, dan menampilkan di UI melalui setState atau provider.
+
+6.Jelaskan mekanisme autentikasi dari login, register, hingga logout. Mulai dari input data akun pada Flutter ke Django hingga selesainya proses autentikasi oleh Django dan tampilnya menu pada Flutter. Mekanisme autentikasi dimulai dari halaman register/login di Flutter mengirim credentials ke endpoint Django. Django melakukan validasi, membuat user session, dan mengembalikan authentication cookie. CookieRequest menyimpan cookie ini dan melampirkannya di setiap subsequent request. Status login di-maintain secara global, mengupdate UI untuk menampilkan menu yang sesuai. Logout dilakukan dengan mengirim request ke logout endpoint dan menghapus stored cookies.
+
+7.Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step! (bukan hanya sekadar mengikuti tutorial). Pertama, memastikan deployment Django berjalan dengan baik dan endpoints berfungsi. Kemudian mengimplementasi fitur registrasi dan login di Flutter dengan form validation. Selanjutnya mengintegrasikan autentikasi menggunakan CookieRequest dan provider untuk state management. Membuat model Dart yang sesuai dengan struktur data Django. Implementasi halaman daftar item dengan FutureBuilder untuk fetch data dari JSON endpoint. Membuat halaman detail dengan navigator dan passing data arguments. Terakhir, implementasi filtering berdasarkan user yang login dengan menambahkan query parameter atau header authentication di requests.
+
 >>>>>>> b41028f (Add ReadMe)
